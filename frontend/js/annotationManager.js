@@ -24,6 +24,7 @@ class AnnotationManager {
         this.cancelBtn = document.getElementById('cancel-annotation');
         this.annotationsList = document.getElementById('annotations-list');
         this.clearBtn = document.getElementById('clearAnnotations');
+        this.clickedCoordinatesDisplay = document.getElementById('clicked-coordinates');
 
         // Character count update
         this.annotationText.addEventListener('input', () => {
@@ -75,6 +76,22 @@ class AnnotationManager {
         this.pendingAnnotation = coordinates;
         this.annotationText.value = '';
         this.charCount.textContent = '0';
+        
+        // Display clicked coordinates
+        if (this.clickedCoordinatesDisplay) {
+            const x = Number(coordinates.x).toFixed(2);
+            const y = Number(coordinates.y).toFixed(2);
+            const z = Number(coordinates.z).toFixed(2);
+            this.clickedCoordinatesDisplay.innerHTML = `
+                <div class="clicked-coords-label">Clicked Coordinates:</div>
+                <div class="clicked-coords-values">
+                    <span><strong>X:</strong> ${x}</span>
+                    <span><strong>Y:</strong> ${y}</span>
+                    <span><strong>Z:</strong> ${z}</span>
+                </div>
+            `;
+        }
+        
         this.annotationForm.style.display = 'block';
         this.annotationText.focus();
     }
@@ -124,6 +141,9 @@ class AnnotationManager {
         this.pendingAnnotation = null;
         this.annotationForm.style.display = 'none';
         this.annotationText.value = '';
+        if (this.clickedCoordinatesDisplay) {
+            this.clickedCoordinatesDisplay.innerHTML = '';
+        }
     }
 
     /**

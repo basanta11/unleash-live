@@ -28,6 +28,9 @@ Thumbs.db
 .env.local
 .env.*.local
 
+# Local frontend configuration (contains local API URLs)
+frontend/js/config.local.js
+
 # Logs
 logs/
 *.log

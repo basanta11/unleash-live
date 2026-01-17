@@ -2,6 +2,10 @@
 
 A full-stack serverless web application for loading, viewing, and annotating 3D point clouds. Built with vanilla JavaScript frontend, AWS Lambda, API Gateway, and DynamoDB.
 
+**🌐 Live Application**: [http://point-cloud-annotator-frontend.s3-website-ap-southeast-2.amazonaws.com](http://point-cloud-annotator-frontend.s3-website-ap-southeast-2.amazonaws.com)
+
+**📦 Repository**: [https://github.com/basanta11/unleash-live](https://github.com/basanta11/unleash-live)
+
 ## Architecture
 
 This application implements **Tier 3** of the requirements:
@@ -46,11 +50,43 @@ This application implements **Tier 3** of the requirements:
 
 ## Technical Choices
 
-- **Vanilla JavaScript**: Lightweight, no build step required, perfect for static S3 hosting
-- **Potree**: Industry-standard point cloud viewer library for 3D visualization (required for Tier 3)
-- **Serverless Framework**: Simple YAML-based Infrastructure as Code, easy to deploy and maintain
-- **DynamoDB**: Serverless NoSQL database, perfect for this use case with automatic scaling
-- **API Gateway + Lambda**: Serverless API that scales automatically, pay-per-use model
+This section explains the rationale behind each technology choice:
+
+### Frontend: Vanilla JavaScript
+I chose **vanilla JavaScript** instead of frameworks like React or Vue because:
+- **No build step required**: Static S3 hosting doesn't require transpilation or bundling, making deployment simpler
+- **Lightweight**: No framework overhead reduces page load time, important for 3D point cloud rendering
+- **Direct DOM manipulation**: Works seamlessly with Potree's existing DOM-based API without framework integration layers
+- **Simple deployment**: Files can be directly synced to S3 without build processes or CD pipeline complexity
+
+### Point Cloud Viewer: Potree
+I chose **Potree** because:
+- **Tier 3 requirement**: Potree is explicitly required for Tier 3 implementation as per project specifications
+- **Industry standard**: Potree is the most widely-used open-source point cloud viewer, with excellent LAZ/LAZ file support
+- **Performance**: Handles large point clouds efficiently with level-of-detail (LOD) rendering and adaptive point sizing
+- **Feature-rich**: Built-in annotation system, measurement tools, and camera controls out of the box
+
+### Backend: Serverless Framework
+I chose **Serverless Framework** because:
+- **Infrastructure as Code**: Define all AWS resources (Lambda, API Gateway, DynamoDB) in a single YAML file
+- **Easy deployment**: Single command (`serverless deploy`) handles all resource creation and updates
+- **Cost-effective**: No build servers or deployment infrastructure needed - deploy directly from development machine
+- **AWS-agnostic abstraction**: Cleaner syntax than raw CloudFormation, easier to understand and maintain
+
+### Database: DynamoDB
+I chose **DynamoDB** because:
+- **Fully managed**: No server provisioning, patching, or scaling concerns - AWS handles everything
+- **Serverless architecture fit**: Perfect match for Lambda functions - both scale automatically with usage
+- **Cost-effective for this use case**: Pay-per-request pricing model ideal for annotation CRUD operations with low-moderate traffic
+- **Fast read/write**: Single-digit millisecond latency for simple queries, sufficient for annotation storage
+
+### API: AWS Lambda + API Gateway
+I chose **AWS Lambda + API Gateway** because:
+- **Tier 3 requirement**: Serverless backend is required for Tier 3 implementation
+- **Automatic scaling**: Handles traffic spikes without manual scaling configuration
+- **Cost-effective**: Pay only for actual request processing, no idle server costs
+- **CORS support**: Built-in CORS configuration for frontend-backend communication
+- **RESTful design**: API Gateway provides clean REST endpoints that map directly to Lambda functions
 
 **Note**: This is a Tier 3 implementation. Potree is required and must be installed in `frontend/lib/potree/`. The `lion_takanawa` point cloud is included in the Potree pointclouds directory.
 
@@ -188,33 +224,208 @@ For better performance and HTTPS support:
 4. Wait for distribution to deploy (15-20 minutes)
 5. Access your application via the CloudFront URL
 
-## Local Development
+## Running the Project Locally
 
-### Running Frontend Locally
+Follow these step-by-step instructions to run the application on your local machine:
 
-You can test the frontend locally using a simple HTTP server:
+### Step 1: Clone the Repository
 
 ```bash
-# Using Python 3
-cd frontend
-python -m http.server 8000
-
-# Or using Node.js http-server
-npx http-server -p 8000
+git clone https://github.com/basanta11/unleash-live.git
+cd unleash-live
 ```
 
-Then open `http://localhost:8000` in your browser.
+### Step 2: Start the Backend Locally (Recommended for Development)
 
-**Note**: Make sure to update `frontend/js/api.js` with your deployed API Gateway URL before testing locally.
+The backend can run locally using `serverless-offline`, which simulates AWS Lambda and API Gateway on your machine.
 
-### Testing Backend Locally
+**Option A: Run Backend Locally (Recommended)**
 
-You can test Lambda functions locally using Serverless Framework:
+1. **Navigate to the backend directory:**
+   ```bash
+   cd backend
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Start the local server:**
+   ```bash
+   npm start
+   # or
+   npm run offline
+   # or
+   serverless offline
+   ```
+
+4. The backend will start on `http://localhost:3000` with the API available at:
+   ```
+   http://localhost:3000/dev
+   ```
+
+**Note**: For local backend, you'll need AWS credentials configured for DynamoDB access, or use [DynamoDB Local](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.html) for fully offline development.
+
+**Option B: Use Deployed Backend (Production API)**
+
+If you prefer to use the deployed backend:
+
+1. **Deploy the serverless stack:**
+   ```bash
+   cd backend
+   npm install
+   serverless deploy
+   ```
+
+2. **Note the API Gateway URL** from the deployment output. It will look like:
+   ```
+   https://aj6m5tp44h.execute-api.ap-southeast-2.amazonaws.com/dev
+   ```
+
+### Step 3: Configure the Frontend API URL
+
+The frontend API URL is configured in `frontend/js/config.js`. You can change it in two ways:
+
+**Option A: Edit config.js Directly (Simple)**
+
+1. **Open `frontend/js/config.js`** in a text editor
+
+2. **Update the `API_BASE_URL`** for your environment:
+   ```javascript
+   // For local backend (serverless-offline)
+   const API_BASE_URL = 'http://localhost:3000/dev';
+   
+   // For deployed backend (production)
+   const API_BASE_URL = 'https://aj6m5tp44h.execute-api.ap-southeast-2.amazonaws.com/dev';
+   ```
+
+**Option B: Use Local Config Override (Advanced)**
+
+1. **Copy the example local config:**
+   ```bash
+   cd frontend/js
+   cp config.local.js.example config.local.js
+   ```
+
+2. **Edit `config.local.js`** to set your local API URL:
+   ```javascript
+   const API_BASE_URL = 'http://localhost:3000/dev';
+   ```
+
+3. **Update `frontend/index.html`** to load `config.local.js` instead of `config.js`:
+   ```html
+   <script src="js/config.local.js"></script>
+   ```
+
+**Note**: `config.local.js` is in `.gitignore` and won't be committed to version control.
+
+### Step 4: Start the Frontend Local Server
+
+Since the frontend uses ES6 modules and requires HTTP (not file:// protocol), you need a local web server:
+
+**Option A: Using Python 3 (Recommended)**
+```bash
+cd frontend
+python -m http.server 8000
+```
+
+**Option B: Using Node.js http-server**
+```bash
+# Install http-server globally if not already installed
+npm install -g http-server
+
+# Navigate to frontend directory
+cd frontend
+
+# Start the server
+http-server -p 8000
+```
+
+**Option C: Using PHP**
+```bash
+cd frontend
+php -S localhost:8000
+```
+
+### Step 5: Open the Application
+
+1. Open your web browser
+2. Navigate to: `http://localhost:8000`
+3. The point cloud should automatically load when the page loads
+
+### Step 6: Test Functionality
+
+1. **Load Point Cloud**: The `lion_takanawa` point cloud should load automatically on page load
+2. **Create Annotation**: 
+   - Click anywhere on the point cloud
+   - You should see the clicked coordinates displayed above the annotation form
+   - Enter annotation text (max 256 bytes)
+   - Click "Save" to create the annotation
+3. **View Annotations**: Check that annotations appear in the sidebar
+4. **Delete Annotation**: Click the delete button (×) on any annotation to remove it
+
+### Using DynamoDB Locally (Optional)
+
+For fully offline development without AWS credentials, you can use DynamoDB Local:
+
+1. **Download DynamoDB Local** from [AWS Documentation](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.DownloadingAndRunning.html)
+
+2. **Start DynamoDB Local:**
+   ```bash
+   java -Djava.library.path=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -sharedDb
+   ```
+
+3. **Configure serverless-offline to use local DynamoDB** by setting the DynamoDB endpoint in your environment or serverless.yml
+
+### Testing Backend Functions
+
+**With serverless-offline running:**
+
+The API is available at `http://localhost:3000/dev`. Test endpoints directly:
+
+```bash
+# Get all annotations
+curl http://localhost:3000/dev/annotations
+
+# Create annotation
+curl -X POST http://localhost:3000/dev/annotations \
+  -H "Content-Type: application/json" \
+  -d '{"x": 1, "y": 2, "z": 3, "text": "Test annotation"}'
+
+# Delete annotation
+curl -X DELETE http://localhost:3000/dev/annotations/{id}
+```
+
+**Using Serverless Framework invoke:**
 
 ```bash
 cd backend
+
+# Test getAnnotations function
 serverless invoke local -f getAnnotations
+
+# Test createAnnotation function
+serverless invoke local -f createAnnotation --data '{"body": "{\"x\": 1, \"y\": 2, \"z\": 3, \"text\": \"Test annotation\"}"}'
+
+# Test deleteAnnotation function
+serverless invoke local -f deleteAnnotation --data '{"pathParameters": {"id": "your-annotation-id"}}'
 ```
+
+### Troubleshooting Local Development
+
+- **CORS errors**: 
+  - For local backend: Ensure `serverless-offline` is running and CORS is enabled in `serverless.yml`
+  - For deployed backend: Verify the API Gateway URL in `frontend/js/config.js` is correct
+- **Backend not starting**: 
+  - Ensure Node.js v18+ is installed
+  - Run `npm install` in the backend directory to install `serverless-offline`
+  - Check AWS credentials are configured if using real DynamoDB
+- **API calls failing**: 
+  - Verify the backend is running (`http://localhost:3000/dev` for local)
+  - Check browser console for CORS errors
+  - Verify the API URL in `frontend/js/config.js` matches your backend
+- **Point cloud not loading**: Check browser console for 404 errors - ensure Potree library files are in `frontend/lib/potree/`
 
 ## Usage
 
@@ -305,5 +516,6 @@ ISC
 ## Notes
 
 - This is a Tier 3 implementation requiring Potree. The `lion_takanawa` point cloud is included with Potree.
-- The application is configured for the `us-east-1` region by default. Update `serverless.yml` to change the region.
+- The application is deployed to the `ap-southeast-2` (Sydney) region. Update `serverless.yml` and `deploy-frontend.ps1` to change the region.
 - For production use, consider adding authentication, rate limiting, and input validation enhancements.
+- **Repository**: Full source code is available at [https://github.com/basanta11/unleash-live](https://github.com/basanta11/unleash-live)

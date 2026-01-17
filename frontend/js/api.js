@@ -1,11 +1,10 @@
 /**
  * API Service for communicating with the backend API Gateway
- * Update the API_BASE_URL with your deployed API Gateway endpoint
+ * API URL is configured in config.js - update that file to change the endpoint
  */
 
-// API Gateway endpoint URL
-// Base URL: https://aj6m5tp44h.execute-api.ap-southeast-2.amazonaws.com/dev
-const API_BASE_URL = 'https://aj6m5tp44h.execute-api.ap-southeast-2.amazonaws.com/dev';
+// Get API base URL from config.js (loaded before this file)
+const API_BASE_URL = window.API_CONFIG?.API_BASE_URL || 'https://aj6m5tp44h.execute-api.ap-southeast-2.amazonaws.com/dev';
 
 /**
  * Get all annotations from the backend

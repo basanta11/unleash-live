@@ -6,7 +6,9 @@
   "scripts": {
     "deploy": "serverless deploy",
     "remove": "serverless remove",
-    "logs": "serverless logs -f"
+    "logs": "serverless logs -f",
+    "start": "serverless offline",
+    "offline": "serverless offline"
   },
   "keywords": [
     "serverless",
@@ -17,7 +19,8 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "serverless": "^3.38.0"
+    "serverless": "^3.38.0",
+    "serverless-offline": "^13.3.3"
   },
   "dependencies": {
     "aws-sdk": "^2.1500.0"
