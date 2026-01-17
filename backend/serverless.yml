@@ -1,0 +1,119 @@
+service: point-cloud-annotator
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: ap-southeast-2
+  stage: ${opt:stage, 'dev'}
+  environment:
+    ANNOTATIONS_TABLE: ${self:service}-annotations-${self:provider.stage}
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+          Resource:
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.ANNOTATIONS_TABLE}"
+
+functions:
+  getAnnotations:
+    handler: functions/getAnnotations/index.handler
+    events:
+      - http:
+          path: annotations
+          method: get
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+            allowCredentials: false
+
+  createAnnotation:
+    handler: functions/createAnnotation/index.handler
+    events:
+      - http:
+          path: annotations
+          method: post
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+            allowCredentials: false
+
+  deleteAnnotation:
+    handler: functions/deleteAnnotation/index.handler
+    events:
+      - http:
+          path: annotations/{id}
+          method: delete
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+            allowCredentials: false
+
+resources:
+  Resources:
+    AnnotationsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.ANNOTATIONS_TABLE}
+        AttributeDefinitions:
+          - AttributeName: annotationId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: annotationId
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
+
+  Outputs:
+    ApiGatewayRestApiId:
+      Value:
+        Ref: ApiGatewayRestApi
+      Export:
+        Name: ${self:provider.stage}-ApiGatewayRestApiId
+
+    ApiGatewayRestApiRootResourceId:
+      Value:
+        Fn::GetAtt:
+          - ApiGatewayRestApi
+          - RootResourceId
+      Export:
+        Name: ${self:provider.stage}-ApiGatewayRestApiRootResourceId
+
+    AnnotationsTableName:
+      Value:
+        Ref: AnnotationsTable
+      Export:
+        Name: ${self:provider.stage}-AnnotationsTableName
+
+    ServiceEndpoint:
+      Description: "API Gateway endpoint URL"
+      Value:
+        Fn::Join:
+          - ""
+          - - "https://"
+            - Ref: ApiGatewayRestApi
+            - ".execute-api."
+            - ${self:provider.region}
+            - ".amazonaws.com/"
+            - ${self:provider.stage}

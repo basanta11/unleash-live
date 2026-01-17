@@ -1,0 +1,25 @@
+{
+  "name": "point-cloud-annotator-backend",
+  "version": "1.0.0",
+  "description": "Serverless backend for Point Cloud Annotator",
+  "main": "index.js",
+  "scripts": {
+    "deploy": "serverless deploy",
+    "remove": "serverless remove",
+    "logs": "serverless logs -f"
+  },
+  "keywords": [
+    "serverless",
+    "aws",
+    "lambda",
+    "dynamodb"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "serverless": "^3.38.0"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.1500.0"
+  }
+}
