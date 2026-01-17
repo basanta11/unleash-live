@@ -50,43 +50,27 @@ This application implements **Tier 3** of the requirements:
 
 ## Technical Choices
 
-This section explains the rationale behind each technology choice:
+When building this project, I made several technology decisions based on the requirements and what would work best for the use case. Here's why I went with each choice:
 
 ### Frontend: Vanilla JavaScript
-I chose **vanilla JavaScript** instead of frameworks like React or Vue because:
-- **No build step required**: Static S3 hosting doesn't require transpilation or bundling, making deployment simpler
-- **Lightweight**: No framework overhead reduces page load time, important for 3D point cloud rendering
-- **Direct DOM manipulation**: Works seamlessly with Potree's existing DOM-based API without framework integration layers
-- **Simple deployment**: Files can be directly synced to S3 without build processes or CD pipeline complexity
+
+Instead of using React or Vue, I stuck with **vanilla JavaScript**. For a static S3-hosted site like this, it made sense - no need for a build step, webpack, or any of that complexity. You can just write your code and sync it to S3. Plus, with Potree already handling the heavy 3D rendering work, adding a framework would've been unnecessary overhead. The lighter the page load, the better when you're dealing with large point clouds. And since Potree works directly with the DOM, vanilla JS integrates cleanly without needing to bridge framework layers.
 
 ### Point Cloud Viewer: Potree
-I chose **Potree** because:
-- **Tier 3 requirement**: Potree is explicitly required for Tier 3 implementation as per project specifications
-- **Industry standard**: Potree is the most widely-used open-source point cloud viewer, with excellent LAZ/LAZ file support
-- **Performance**: Handles large point clouds efficiently with level-of-detail (LOD) rendering and adaptive point sizing
-- **Feature-rich**: Built-in annotation system, measurement tools, and camera controls out of the box
+
+**Potree** was pretty much a given since the Tier 3 requirements explicitly call for it. But even if it wasn't required, I'd probably still choose it. It's the go-to open-source solution for point cloud visualization - most people in the industry use it. It handles LAZ files really well, and the performance is impressive when dealing with massive datasets thanks to its level-of-detail rendering. Plus it comes with useful features like annotations, measurements, and camera controls already built in, so I didn't have to reinvent the wheel.
 
 ### Backend: Serverless Framework
-I chose **Serverless Framework** because:
-- **Infrastructure as Code**: Define all AWS resources (Lambda, API Gateway, DynamoDB) in a single YAML file
-- **Easy deployment**: Single command (`serverless deploy`) handles all resource creation and updates
-- **Cost-effective**: No build servers or deployment infrastructure needed - deploy directly from development machine
-- **AWS-agnostic abstraction**: Cleaner syntax than raw CloudFormation, easier to understand and maintain
+
+For the backend, **Serverless Framework** was the clear winner. It lets me define everything - Lambdas, API Gateway, DynamoDB - in one YAML file, which is way cleaner than managing CloudFormation templates manually. Deploying is as simple as running `serverless deploy` and it handles all the AWS resource creation and updates. Since I'm deploying directly from my machine, I don't need to set up any CI/CD pipelines or build servers, which keeps things simple and keeps costs down.
 
 ### Database: DynamoDB
-I chose **DynamoDB** because:
-- **Fully managed**: No server provisioning, patching, or scaling concerns - AWS handles everything
-- **Serverless architecture fit**: Perfect match for Lambda functions - both scale automatically with usage
-- **Cost-effective for this use case**: Pay-per-request pricing model ideal for annotation CRUD operations with low-moderate traffic
-- **Fast read/write**: Single-digit millisecond latency for simple queries, sufficient for annotation storage
+
+I went with **DynamoDB** because it fits perfectly with the serverless architecture. No servers to manage, AWS handles all the scaling and patching. It pairs nicely with Lambda - both scale automatically based on demand. For storing annotations, the pay-per-request pricing makes sense since we're not dealing with massive amounts of data. The latency is great too - we're talking milliseconds for simple queries, which is more than fast enough for this application.
 
 ### API: AWS Lambda + API Gateway
-I chose **AWS Lambda + API Gateway** because:
-- **Tier 3 requirement**: Serverless backend is required for Tier 3 implementation
-- **Automatic scaling**: Handles traffic spikes without manual scaling configuration
-- **Cost-effective**: Pay only for actual request processing, no idle server costs
-- **CORS support**: Built-in CORS configuration for frontend-backend communication
-- **RESTful design**: API Gateway provides clean REST endpoints that map directly to Lambda functions
+
+**Lambda and API Gateway** were a natural fit here. The Tier 3 requirements call for a serverless backend anyway, and they solve the scaling problem nicely - traffic spikes? Not a problem, they handle it automatically. I like that I only pay for what I use, no idle server costs. API Gateway also makes CORS configuration straightforward, which was important for connecting the frontend on S3 to the backend. Plus, it gives me clean REST endpoints that map directly to my Lambda functions, which keeps the code organized and easy to understand.
 
 **Note**: This is a Tier 3 implementation. Potree is required and must be installed in `frontend/lib/potree/`. The `lion_takanawa` point cloud is included in the Potree pointclouds directory.
 
