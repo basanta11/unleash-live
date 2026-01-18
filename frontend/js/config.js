@@ -9,12 +9,12 @@
 
 // Default API base URL (production)
 // Change this to 'http://localhost:3000/dev' for local backend development
-const API_BASE_URL = window.API_BASE_URL || 
+const apiBaseUrl = window.API_BASE_URL || 
   'https://aj6m5tp44h.execute-api.ap-southeast-2.amazonaws.com/dev';
 
 // Export for use in api.js
 window.API_CONFIG = {
-  API_BASE_URL: API_BASE_URL
+  API_BASE_URL: apiBaseUrl
 };
 
-console.log('API Base URL configured:', API_BASE_URL);
+console.log('API Base URL configured:', apiBaseUrl);

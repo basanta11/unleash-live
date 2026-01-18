@@ -92,7 +92,12 @@ async function deleteAnnotation(annotationId) {
     }
 }
 
-// Export functions for use in other modules
+// Export functions globally for use in other scripts
+window.getAnnotations = getAnnotations;
+window.createAnnotation = createAnnotation;
+window.deleteAnnotation = deleteAnnotation;
+
+// Also export for Node.js modules if needed
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { getAnnotations, createAnnotation, deleteAnnotation };
 }

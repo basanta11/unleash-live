@@ -2,9 +2,8 @@
 
 A full-stack serverless web application for loading, viewing, and annotating 3D point clouds. Built with vanilla JavaScript frontend, AWS Lambda, API Gateway, and DynamoDB.
 
-**🌐 Live Application**: [http://point-cloud-annotator-frontend.s3-website-ap-southeast-2.amazonaws.com](http://point-cloud-annotator-frontend.s3-website-ap-southeast-2.amazonaws.com)
+** Live Application**: [http://point-cloud-annotator-frontend-ap2.s3-website-ap-southeast-2.amazonaws.com](http://point-cloud-annotator-frontend-ap2.s3-website-ap-southeast-2.amazonaws.com)
 
-**📦 Repository**: [https://github.com/basanta11/unleash-live](https://github.com/basanta11/unleash-live)
 
 ## Architecture
 
